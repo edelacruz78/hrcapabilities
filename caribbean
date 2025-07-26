@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Capacidades de Gestión Humana</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* Estilos personalizados y configuración de Tailwind */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: rgba(251, 249, 246, 0.85); 
+            color: #374151; 
+        }
+
+        #background-slider {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            z-index: -1; 
+            overflow: hidden;
+        }
+
+        .slider-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover; 
+            filter: blur(18px) contrast(60%) brightness(90%);
+            transform: scale(1.15); 
+            opacity: 0;
+            transition: opacity 1.5s ease-in-out; 
+        }
+
+        .slider-image.active {
+            opacity: 1;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .capability-card {
+            position: relative; 
+            background-color: #FFFFFF; 
+            border-radius: 0.75rem; 
+            box-shadow: 0 4px 12px -1px rgba(0, 0, 0, 0.06), 0 2px 8px -1px rgba(0, 0, 0, 0.04);
+            transition: transform 0.3s ease-out, box-shadow 0.3s ease-out; 
+            animation: fadeInUp 0.5s ease-out forwards;
+            opacity: 0;
+            z-index: 1; 
+        }
+        .capability-card.is-open { /* Cuando la tarjeta está expandida */
+            z-index: 100;
+        }
+
+        .capability-card:hover { /* Efecto hover sutil, no expande */
+            transform: translateY(-4px);
+            box-shadow: 0 6px 14px -2px rgba(196, 214, 0, 0.1), 0 3px 8px -2px rgba(196, 214, 0, 0.08);
+        }
+        
+        .card-header {
+            padding: 1.25rem; 
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background-color 0.2s ease;
+            position: relative; 
+            z-index: 2; 
+            background-color: #FFFFFF; 
+            border-top-left-radius: 0.75rem;
+            border-top-right-radius: 0.75rem;
+        }
+         .capability-card.is-open .card-header { /* Estilo del header cuando la tarjeta está abierta */
+            border-bottom-left-radius: 0;
+            border-bottom-right-radius: 0;
+         }
+
+
+        .card-content {
+            position: absolute;
+            top: 100%; 
+            left: 0;
+            width: 100%;
+            background-color: #FFFFFF;
+            box-shadow: 0 8px 16px -2px rgba(196, 214, 0, 0.2), 0 4px 10px -2px rgba(196, 214, 0, 0.15); 
+            border-bottom-left-radius: 0.75rem;
+            border-bottom-right-radius: 0.75rem;
+            max-height: 0;
+            overflow: hidden; 
+            opacity: 0;
+            transition: max-height 0.4s ease-in-out, opacity 0.3s ease-in-out, padding-top 0.4s ease-in-out, padding-bottom 0.4s ease-in-out;
+            z-index: 1; 
+            padding-top: 0;
+            padding-bottom: 0;
+        }
+
+        .card-content.expanded { /* Clase para expandir con JS */
+            opacity: 1;
+            padding-top: 0.75rem; 
+            padding-bottom: 1.25rem;
+        }
+        
+        .card-content-inner { 
+            padding-left: 1.25rem;
+            padding-right: 1.25rem;
+        }
+
+        .chevron-icon {
+            transition: transform 0.3s ease-in-out;
+            width: 1.25rem; 
+            height: 1.25rem; 
+            color: #c4d600; 
+        }
+
+        .chevron-icon.expanded { /* Clase para rotar con JS */
+            transform: rotate(180deg);
+        }
+
+        /* Colores de la paleta */
+        .bg-primary-custom { background-color: #c4d600; } 
+        .text-primary-custom { color: #c4d600; } 
+        
+        .text-secondary-custom-dark { color: #A2B300; } 
+        
+        .bg-footer-beige { background-color: #EDEAE5; } 
+
+        .header-sticky {
+            position: sticky;
+            top: 0;
+            z-index: 200; 
+            box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.06), 0 1px 2px -1px rgba(0, 0, 0, 0.04);
+        }
+
+        .lang-button-container {
+            background-color: #c4d600; 
+            padding: 0.375rem; 
+            border-radius: 0.375rem; 
+            display: inline-flex; 
+        }
+
+        .lang-button {
+            transition: background-color 0.2s ease, color 0.2s ease;
+            padding: 0.375rem 0.75rem; 
+            border-radius: 0.25rem; 
+            font-size: 0.875rem; 
+            font-weight: 500;
+            color: rgba(0, 0, 0, 0.7); 
+            border: 1px solid transparent;
+        }
+
+        .lang-button.active {
+            background-color: white;
+            color: #374151; 
+            font-weight: 600;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+        .lang-button:not(.active):hover {
+            background-color: rgba(255, 255, 255, 0.2); 
+            color: rgba(0,0,0,0.9);
+        }
+        
+        .language-dropdown-label {
+            color: #374151; 
+            font-size: 0.875rem; 
+            margin-right: 0.5rem; 
+        }
+
+        .icon-container {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.65rem;  
+            height: 1.65rem; 
+            margin-right: 0.85rem; 
+            color: #c4d600; 
+        }
+        .icon-container svg {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div id="background-slider">
+        <img src="https://storage.googleapis.com/generativeai-downloads/images/230125%20F%20F0085.jpg" alt="[Imagen de una mujer escribiendo en una pizarra en una reunión de oficina]" class="slider-image active">
+        <img src="https://storage.googleapis.com/generativeai-downloads/images/230125%20F%20F0105.jpg" alt="[Imagen de grandes silos industriales y un camión de cemento]" class="slider-image">
+        <img src="https://storage.googleapis.com/generativeai-downloads/images/230125%20F%20F0130.jpg" alt="[Imagen de un trabajador de la construcción con casco y mascarilla haciendo un gesto de aprobación]" class="slider-image">
+    </div>
+
+    <header class="bg-primary-custom text-white header-sticky p-4">
+        <div class="container mx-auto flex flex-col sm:flex-row justify-between items-center">
+            <h1 id="mainPageTitle" class="text-2xl sm:text-3xl font-semibold mb-2 sm:mb-0 tracking-tight text-gray-800"></h1>
+            <div class="flex items-center">
+                <span id="languageSelectorLabel" class="language-dropdown-label"></span>
+                <div class="lang-button-container">
+                    <button id="lang-es" class="lang-button">Español</button>
+                    <button id="lang-en" class="lang-button">English</button>
+                    <button id="lang-fr" class="lang-button">Français</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto p-4 md:p-6 lg:p-8">
+        <div id="capabilitiesContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+            {/* Las tarjetas de capacidad se insertarán aquí por JavaScript */}
+        </div>
+    </main>
+
+    <footer class="bg-footer-beige text-center p-6 mt-12">
+        <p class="text-sm text-gray-600">&copy; <span id="currentYear"></span> <span id="footerText">Capacidades de Gestión Humana. Todos los derechos reservados.</span></p>
+    </footer>
+
+    <script>
+        // --- DATA ---
+        const siteContent = {
+            pageTitle: {
+                es: "Definiciones de Capacidades para Gestión Humana",
+                en: "Definitions of Capabilities for Human Management",
+                fr: "Définitions des Capacités pour la Gestion Humaine" 
+            },
+            languageSelectorLabel: {
+                es: "Idioma:",
+                en: "Language:",
+                fr: "Langue:" 
+            },
+            implicationsTitle: {
+                es: "Esta capacidad implica:",
+                en: "This capability involves:",
+                fr: "Cette capacité implique :" 
+            },
+            relationTitle: {
+                es: "Se relaciona con:",
+                en: "It is related to:",
+                fr: "C'est lié à :" 
+            },
+            culturalPillarImplicationsTitle: {
+                es: "Según los pilares culturales, ser ágil implica:",
+                en: "According to the cultural pillars, being agile means:",
+                fr: "Selon les piliers culturels, être agile signifie :" 
+            },
+            skillIncludesTitle: {
+                es: "Esta habilidad incluye:",
+                en: "This skill includes:",
+                fr: "Cette compétence inclut :" 
+            },
+            capabilityEnablesTitle: {
+                es: "Esta capacidad permite:",
+                en: "This capability enables:",
+                fr: "Cette capacité permet de :" 
+            },
+            capabilityIncludesTitle: {
+                es: "Esta capacidad incluye:",
+                en: "This capability includes:",
+                fr: "Cette capacité inclut :" 
+            },
+            footerText: {
+                es: "Capacidades de Gestión Humana. Todos los derechos reservados.",
+                en: "Human Management Capabilities. All rights reserved.",
+                fr: "Capacités de Gestion Humaine. Tous droits réservés." 
+            }
+        };
+
+        const capabilitiesData = [
+            {
+                id: "businessAcumen",
+                icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>`, 
+                title: { 
+                    es: "Agudeza de Negocios", 
+                    en: "Business Acumen",
+                    fr: "Sens des Affaires" 
+                },
+                definition: { 
+                    es: "Capacidad para comprender el negocio en su totalidad, incluyendo su contexto económico, estratégico y operativo. Un entendimiento del negocio permite identificar oportunidades estratégicas para el crecimiento rentable y tomar decisiones alineadas con la sostenibilidad empresarial.", 
+                    en: "The ability to understand the business in its entirety, including its economic, strategic, and operational context. A deep business understanding allows the identification of strategic opportunities for profitable growth and decision-making aligned with corporate sustainability.",
+                    fr: "Capacité à comprendre l'entreprise dans sa globalité, y compris son contexte économique, stratégique et opérationnel. Une compréhension approfondie de l'entreprise permet d'identifier les opportunités stratégiques de croissance rentable et de prendre des décisions alignées sur la durabilité de l'entreprise." 
+                },
+                implications_list_title_key: "implicationsTitle",
+                implications: { 
+                    es: ["Conocer las tendencias del mercado y los factores que afectan la competitividad y la rentabilidad.", "Entender cómo las decisiones de gestión humana impactan en los resultados de la organización."], 
+                    en: ["Understanding market trends and factors affecting competitiveness and profitability.", "Recognizing how human management decisions impact organizational results."],
+                    fr: ["Connaître les tendances du marché et les facteurs qui affectent la compétitivité et la rentabilité.", "Comprendre comment les décisions de gestion humaine impactent les résultats de l'organisation."] 
+                },
+                relation: { 
+                    es: "Se relaciona con la competencia Agudeza en los Negocios del Modelo de Competencias y con el pilar Somos Impulsores de Crecimiento Rentable.", 
+                    en: "It is related to the Business Acumen competency within the Competency Model and the pillar 'We are drivers of Profitable Growth.'",
+                    fr: "Elle est liée à la compétence Sens des Affaires du Modèle de Compétences et au pilier 'Nous sommes moteurs de Croissance Rentable.'" 
+                }
+            },
+            {
+                id: "agile",
+                icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z" /></svg>`, 
+                title: { 
+                    es: "Somos Ágiles", 
+                    en: "We Are Agile",
+                    fr: "Nous Sommes Agiles" 
+                },
+                definition: { 
+                    es: "Capacidad de responder de manera rápida y eficiente a los cambios organizacionales, adoptando nuevas metodologías de trabajo y promoviendo la flexibilidad.", 
+                    en: "The ability to respond quickly and efficiently to organizational changes, adopting new work methodologies and promoting flexibility.",
+                    fr: "Capacité à répondre rapidement et efficacement aux changements organisationnels, en adoptant de nouvelles méthodologies de travail et en favorisant la flexibilité." 
+                },
+                implications_list_title_key: "culturalPillarImplicationsTitle",
+                implications: { 
+                    es: ["Actuar con una mentalidad flexible, pragmática y adaptativa.", "Entregar resultados de valor en un entorno cambiante."], 
+                    en: ["Acting with a flexible, pragmatic, and adaptive mindset.", "Delivering valuable results in a changing environment."],
+                    fr: ["Agir avec un état d'esprit flexible, pragmatique et adaptatif.", "Fournir des résultats de valeur dans un environnement changeant."] 
+                },
+                relation: { 
+                    es: "Se relaciona con la competencia Agilidad Organizativa y conecta directamente con el descriptor: Somos ágiles flexibles y pragmáticos.", 
+                    en: "It is associated with the Organizational Agility competency and directly connects with the 'We Are Agile, Flexible, and Pragmatic' descriptor.",
+                    fr: "Elle est associée à la compétence Agilité Organisationnelle et se connecte directement au descripteur : 'Nous Sommes Agiles, Flexibles et Pragmatiques.'" 
+                }
+            },
+            {
+                id: "employeeExperience",
+                icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A1.875 1.875 0 0 1 18 22.5H6a1.875 1.875 0 0 1-1.499-2.382Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M21 12.75a.75.75 0 0 0-.75-.75H18.75a.75.75 0 0 0-.75.75v5.25c0 .414.336.75.75.75h1.5a.75.75 0 0 0 .75-.75v-5.25Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M3 12.75a.75.75 0 0 1 .75-.75H5.25a.75.75 0 0 1 .75.75v5.25c0 .414-.336.75-.75.75H3.75a.75.75 0 0 1-.75-.75v-5.25Z" /></svg>`, 
+                title: { 
+                    es: "Mejoramos la Experiencia de las Personas", 
+                    en: "We Improve the Employee Experience",
+                    fr: "Nous Améliorons l'Expérience Employé" 
+                },
+                definition: { 
+                    es: "Habilidad para diseñar e implementar iniciativas que optimicen el bienestar y la productividad de los colaboradores.", 
+                    en: "The ability to design and implement initiatives that enhance employee well-being and productivity.",
+                    fr: "Capacité à concevoir et mettre en œuvre des initiatives qui optimisent le bien-être et la productivité des collaborateurs." 
+                },
+                implications_list_title_key: "skillIncludesTitle",
+                implications: { 
+                    es: ["Personalizar la experiencia del empleado.", "Desarrollar estrategias para la retención del talento.", "Promover una cultura organizacional alineada con la identidad regional."], 
+                    en: ["Personalizing the employee experience.", "Developing talent retention strategies.", "Promoting an organizational culture aligned with regional identity."],
+                    fr: ["Personnaliser l'expérience employé.", "Développer des stratégies de rétention des talents.", "Promouvoir une culture organisationnelle alignée sur l'identité régionale."] 
+                },
+                relation: { 
+                    es: "Según el reporte de Gartner, esto es clave en la transformación de Gestión Humana como un área centrada en el empleado. También se vincula con el descriptor del pilar cultural “Nos comportamos como dueños”: Cuidamos de nosotros, de los demás y de nuestro entorno.", 
+                    en: "According to Gartner’s report, this is key in transforming Human Management into an employee-centered area. It is also linked to the “We take ownership” cultural pillar descriptor: 'We Care for Ourselves, Others, and Our Environment.'",
+                    fr: "Selon le rapport de Gartner, c'est la clé de la transformation de la Gestion Humaine en un domaine centré sur l'employé. Elle est également liée au descripteur du pilier culturel 'Nous nous approprions les choses' : 'Nous prenons soin de nous-mêmes, des autres et de notre environnement.'" 
+                }
+            },
+            {
+                id: "dataDriven",
+                icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" /></svg>`, 
+                title: { 
+                    es: "Orientación a Datos", 
+                    en: "Data-Driven Orientation",
+                    fr: "Orientation Données" 
+                },
+                definition: { 
+                    es: "Capacidad para utilizar datos y analítica avanzada en la toma de decisiones estratégicas de Gestión Humana. Tomar decisiones basadas en datos implica asumir responsabilidad por la mejora continua y la efectividad de las acciones en el área de Personas.", 
+                    en: "The ability to use data and advanced analytics in strategic human management decision-making. Making data-based decisions implies taking responsibility for continuous improvement and the effectiveness of actions within the People area.",
+                    fr: "Capacité à utiliser les données et l'analytique avancée dans la prise de décisions stratégiques en gestion humaine. Prendre des décisions basées sur les données implique d'assumer la responsabilité de l'amélioration continue et de l'efficacité des actions dans le domaine des Personnes." 
+                },
+                implications_list_title_key: "implicationsTitle",
+                implications: { 
+                    es: ["Integrar tecnología para consolidar información.", "Identificar tendencias en el talento.", "Medir el impacto de las iniciativas.", "Respaldar la toma de decisiones con datos objetivos."], 
+                    en: ["Integrating technology to consolidate information.", "Identifying talent trends.", "Measuring the impact of initiatives.", "Supporting decision-making with objective data."],
+                    fr: ["Intégrer la technologie pour consolider l'information.", "Identifier les tendances en matière de talents.", "Mesurer l'impact des initiatives.", "Soutenir la prise de décision avec des données objectives."] 
+                },
+                relation: { 
+                    es: "Gartner resalta la importancia de la digitalización en Recursos Humanos y el uso de métricas para lograr la excelencia funcional. Se alinea con la Optimización de Procesos de Trabajo del modelo de competencias de Grupo Argos. Y con el descriptor Nos hacemos cargo. De nuestro pilar cultural Nos comportamos como dueños.", 
+                    en: "Gartner highlights the importance of digitization in Human Resources and the use of metrics to achieve functional excellence. It aligns with the Work Process Optimization competency of the Grupo Argos model and the 'We Take Responsibility' descriptor.",
+                    fr: "Gartner souligne l'importance de la numérisation dans les Ressources Humaines et l'utilisation de métriques pour atteindre l'excellence fonctionnelle. Cela s'aligne sur la compétence Optimisation des Processus de Travail du modèle Grupo Argos et sur le descripteur 'Nous Prenons nos Responsabilités'." 
+                }
+            },
+            {
+                id: "bilingualism",
+                icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M3 12h18M3 12a9 9 0 0 1 18 0M3 12a9 9 0 0 0 18 0m-9 6.75h.008v.008H12v-.008Zm-.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h.375m-.375 0H6.75m2.25-3h3.75m-3.75 0H6.75m0 0v3.75m0-3.75a2.25 2.25 0 0 0-2.25 2.25M17.25 12a2.25 2.25 0 0 1 2.25 2.25m-2.25-2.25a2.25 2.25 0 0 0-2.25 2.25M17.25 12h-3.75m3.75 0a2.25 2.25 0 0 1-2.25 2.25m2.25-2.25v3.75m0-3.75a2.25 2.25 0 0 0 2.25-2.25M6.75 12a2.25 2.25 0 0 1 2.25-2.25m-2.25 2.25a2.25 2.25 0 0 0-2.25-2.25M6.75 12V9.75m3.75 2.25a2.25 2.25 0 0 1-2.25-2.25M10.5 12a2.25 2.25 0 0 0-2.25-2.25M10.5 12V9.75" /></svg>`, 
+                title: { 
+                    es: "Bilingüismo", 
+                    en: "Bilingualism",
+                    fr: "Bilinguisme" 
+                },
+                definition: { 
+                    es: "Dominio de dos idiomas para facilitar la comunicación y la integración regional en un entorno de trabajo globalizado.", 
+                    en: "Proficiency in two languages to facilitate communication and regional integration in a globalized work environment.",
+                    fr: "Maîtrise de deux langues pour faciliter la communication et l'intégration régionale dans un environnement de travail mondialisé." 
+                },
+                implications_list_title_key: "capabilityEnablesTitle",
+                implications: { 
+                    es: ["Interactuar de manera efectiva con colaboradores de distintas geografías.", "Mejorar la colaboración entre operaciones.", "Fortalecer la competitividad internacional."], 
+                    en: ["Effective interaction with employees from different regions.", "Enhanced collaboration across operations.", "Strengthened international competitiveness."],
+                    fr: ["Interagir efficacement avec des collaborateurs de différentes régions.", "Améliorer la collaboration entre les opérations.", "Renforcer la compétitivité internationale."] 
+                },
+                relation: { 
+                    es: "Se relaciona con la capacidad de comunicación efectiva, así como con el descriptor Construimos relaciones sólidas de nuestro pilar cultural: Somos Solucionadores.", 
+                    en: "It is related to effective communication skills and the 'We Build Strong Relationships' descriptor.",
+                    fr: "Elle est liée aux compétences en communication efficace et au descripteur 'Nous Bâtissons des Relations Solides'." 
+                }
+            },
+            {
+                id: "strategicConsulting",
+                icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" /></svg>`, 
+                title: { 
+                    es: "Consultoría Estratégica", 
+                    en: "Strategic Consulting",
+                    fr: "Conseil Stratégique" 
+                },
+                definition: { 
+                    es: "Capacidad para actuar como asesor en la toma de decisiones organizacionales, aportando soluciones basadas en las mejores prácticas de Gestión Humana y alineadas con la estrategia del negocio.", 
+                    en: "The ability to act as an advisor in organizational decision-making, providing solutions based on best Human Management practices and aligned with business strategy.",
+                    fr: "Capacité à agir en tant que conseiller dans la prise de décisions organisationnelles, en fournissant des solutions basées sur les meilleures pratiques de Gestion Humaine et alignées sur la stratégie de l'entreprise." 
+                },
+                implications_list_title_key: "capabilityIncludesTitle",
+                implications: { 
+                    es: ["Habilidades en influencia, negociación y liderazgo de cambio.", "Integración de diversas áreas en la construcción de soluciones."], 
+                    en: ["Skills in influence, negotiation, and change leadership.", "Integration of various areas in solution development."],
+                    fr: ["Compétences en influence, négociation et leadership du changement.", "Intégration de divers domaines dans l'élaboration de solutions."] 
+                },
+                relation: { 
+                    es: "Según el modelo de competencias de Grupo Argos, esta capacidad combina Agudeza Política, Liderazgo con Propósito e Impacto e Influencia. Y conecta con el descriptor: Entregamos soluciones entendiendo la realidad del cliente, de nuestro pilar cultural, Somos solucionadores.", 
+                    en: "According to the Grupo Argos competency model, this capability combines Political Acumen, Purpose-Driven Leadership, and Impact & Influence. It connects with the 'We Deliver Solutions Understanding the customer’s needs' descriptor.",
+                    fr: "Selon le modèle de compétences de Grupo Argos, cette capacité combine Perspicacité Politique, Leadership Axé sur les Objectifs, et Impact & Influence. Elle se connecte au descripteur : 'Nous Fournissons des Solutions en Comprenant les Besoins du Client'." 
+                }
+            }
+        ];
+
+        // --- DOM Elements ---
+        const mainPageTitleEl = document.getElementById('mainPageTitle');
+        const languageSelectorLabelEl = document.getElementById('languageSelectorLabel');
+        const capabilitiesContainer = document.getElementById('capabilitiesContainer');
+        const langEsButton = document.getElementById('lang-es');
+        const langEnButton = document.getElementById('lang-en');
+        const langFrButton = document.getElementById('lang-fr'); 
+        const currentYearEl = document.getElementById('currentYear');
+        const footerTextEl = document.getElementById('footerText');
+
+
+        // --- State ---
+        let currentLanguage = 'es'; 
+        let currentlyOpenCard = null; // Referencia a la tarjeta actualmente expandida
+
+        // --- Functions ---
+        function renderCapabilities() {
+            capabilitiesContainer.innerHTML = ''; 
+
+            mainPageTitleEl.textContent = siteContent.pageTitle[currentLanguage];
+            languageSelectorLabelEl.textContent = siteContent.languageSelectorLabel[currentLanguage];
+            footerTextEl.textContent = siteContent.footerText[currentLanguage];
+
+
+            [langEsButton, langEnButton, langFrButton].forEach(btn => btn.classList.remove('active'));
+            if (currentLanguage === 'es') langEsButton.classList.add('active');
+            else if (currentLanguage === 'en') langEnButton.classList.add('active');
+            else if (currentLanguage === 'fr') langFrButton.classList.add('active');
+
+
+            capabilitiesData.forEach((cap, index) => {
+                const card = document.createElement('div');
+                card.style.animationDelay = `${index * 100}ms`;
+                card.className = 'capability-card'; 
+                card.dataset.capabilityId = cap.id; // Para identificar la tarjeta
+
+                const cardHeader = document.createElement('div');
+                cardHeader.className = 'card-header';
+
+                const titleAndIcon = document.createElement('div');
+                titleAndIcon.className = 'flex items-center';
+
+                if (cap.icon) {
+                    const iconWrapper = document.createElement('div');
+                    iconWrapper.className = 'icon-container text-primary-custom'; 
+                    iconWrapper.innerHTML = cap.icon;
+                    titleAndIcon.appendChild(iconWrapper);
+                }
+
+                const title = document.createElement('h3');
+                title.className = 'text-lg font-semibold text-primary-custom'; 
+                title.textContent = cap.title[currentLanguage];
+                titleAndIcon.appendChild(title);
+                cardHeader.appendChild(titleAndIcon);
+                
+                const chevron = document.createElement('div');
+                chevron.className = 'chevron-icon'; 
+                chevron.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>`;
+                cardHeader.appendChild(chevron);
+                card.appendChild(cardHeader);
+
+                const cardContent = document.createElement('div');
+                cardContent.className = 'card-content'; 
+                
+                const contentWrapper = document.createElement('div'); 
+                contentWrapper.className = 'card-content-inner space-y-3';
+
+
+                const definition = document.createElement('p');
+                definition.className = 'text-sm text-gray-600 leading-relaxed';
+                definition.textContent = cap.definition[currentLanguage];
+                contentWrapper.appendChild(definition);
+
+                if (cap.implications[currentLanguage] && cap.implications[currentLanguage].length > 0) {
+                    const implicationsTitle = document.createElement('h4');
+                    implicationsTitle.className = 'text-sm font-semibold text-secondary-custom-dark mt-2'; 
+                    implicationsTitle.textContent = siteContent[cap.implications_list_title_key][currentLanguage];
+                    contentWrapper.appendChild(implicationsTitle);
+
+                    const implicationsList = document.createElement('ul');
+                    implicationsList.className = 'list-disc list-inside space-y-1 text-sm text-gray-600 pl-4';
+                    cap.implications[currentLanguage].forEach(item => {
+                        const listItem = document.createElement('li');
+                        listItem.textContent = item;
+                        implicationsList.appendChild(listItem);
+                    });
+                    contentWrapper.appendChild(implicationsList);
+                }
+
+                if (cap.relation[currentLanguage]) {
+                    const relationTitle = document.createElement('h4');
+                    relationTitle.className = 'text-sm font-semibold text-secondary-custom-dark mt-2'; 
+                    relationTitle.textContent = siteContent.relationTitle[currentLanguage];
+                    contentWrapper.appendChild(relationTitle);
+
+                    const relationText = document.createElement('p');
+                    relationText.className = 'text-sm text-gray-500 italic';
+                    relationText.textContent = cap.relation[currentLanguage];
+                    contentWrapper.appendChild(relationText);
+                }
+                cardContent.appendChild(contentWrapper);
+                card.appendChild(cardContent);
+                
+                // Event listener para clic en la cabecera
+                cardHeader.addEventListener('click', () => {
+                    toggleCard(card, cardHeader, cardContent, contentWrapper, chevron);
+                });
+
+                capabilitiesContainer.appendChild(card);
+            });
+        }
+
+        function toggleCard(cardElement, cardHeader, cardContent, contentWrapper, chevronIcon) {
+            const isOpening = !cardContent.classList.contains('expanded');
+
+            // Si se está abriendo una nueva tarjeta y hay una abierta, cerrarla primero
+            if (isOpening && currentlyOpenCard && currentlyOpenCard !== cardElement) {
+                const openCardContent = currentlyOpenCard.querySelector('.card-content');
+                const openChevron = currentlyOpenCard.querySelector('.chevron-icon');
+                
+                currentlyOpenCard.classList.remove('is-open');
+                openCardContent.classList.remove('expanded');
+                openChevron.classList.remove('expanded');
+                openCardContent.style.maxHeight = '0px';
+                openCardContent.style.overflowY = 'hidden';
+            }
+
+            // Alternar la tarjeta actual
+            cardElement.classList.toggle('is-open', isOpening);
+            cardContent.classList.toggle('expanded', isOpening);
+            chevronIcon.classList.toggle('expanded', isOpening);
+
+            if (isOpening) {
+                currentlyOpenCard = cardElement; // Establecer como la tarjeta abierta
+                const headerRect = cardHeader.getBoundingClientRect();
+                const spaceBelowHeader = window.innerHeight - headerRect.bottom;
+                const MARGIN_FROM_VIEWPORT_BOTTOM = 20; 
+                const innerContentHeight = contentWrapper.scrollHeight; 
+
+                if (innerContentHeight > (spaceBelowHeader - MARGIN_FROM_VIEWPORT_BOTTOM)) {
+                    cardContent.style.maxHeight = (spaceBelowHeader - MARGIN_FROM_VIEWPORT_BOTTOM) + 'px';
+                    cardContent.style.overflowY = 'auto';
+                } else {
+                    cardContent.style.maxHeight = innerContentHeight + 'px';
+                    cardContent.style.overflowY = 'hidden';
+                }
+            } else {
+                cardContent.style.maxHeight = '0px';
+                cardContent.style.overflowY = 'hidden';
+                if (currentlyOpenCard === cardElement) {
+                    currentlyOpenCard = null; // Ya no hay tarjeta abierta
+                }
+            }
+        }
+        
+        // --- Background Slider Logic ---
+        const sliderImages = document.querySelectorAll('#background-slider .slider-image');
+        let currentImageIndex = 0;
+        const slideInterval = 7000; // 7 segundos
+
+        function nextSlide() {
+            if (sliderImages.length === 0) return;
+            sliderImages[currentImageIndex].classList.remove('active');
+            currentImageIndex = (currentImageIndex + 1) % sliderImages.length;
+            sliderImages[currentImageIndex].classList.add('active');
+        }
+
+        if (sliderImages.length > 1) {
+            setInterval(nextSlide, slideInterval);
+        }
+
+
+        function setLanguage(lang) {
+            currentLanguage = lang;
+            localStorage.setItem('preferredLanguage', lang); 
+            document.documentElement.lang = lang;
+            renderCapabilities(); // Esto re-renderizará las tarjetas, cerrando cualquiera que esté abierta
+            currentlyOpenCard = null; // Asegurarse de que no haya referencia a tarjeta abierta después de cambiar idioma
+        }
+
+        // --- Event Listeners ---
+        langEsButton.addEventListener('click', () => setLanguage('es'));
+        langEnButton.addEventListener('click', () => setLanguage('en'));
+        langFrButton.addEventListener('click', () => setLanguage('fr')); 
+
+
+        // --- Initial Load ---
+        const preferredLang = localStorage.getItem('preferredLanguage');
+        if (preferredLang && ['es', 'en', 'fr'].includes(preferredLang)) { 
+            currentLanguage = preferredLang;
+        }
+        
+        currentYearEl.textContent = new Date().getFullYear();
+        setLanguage(currentLanguage); 
+
+    </script>
+</body>
+</html>
