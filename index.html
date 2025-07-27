@@ -104,7 +104,7 @@
             max-height: 0;
             overflow: hidden; 
             opacity: 0;
-            transition: max-height 0.4s ease-in-out, opacity 0.3s ease-in-out, padding-top 0.4s ease-in-out, padding-bottom 0.4s ease-in-out;
+            transition: max-height 0.4s ease-in-out, opacity 0.3s ease-in-out;
             z-index: 1; 
             padding-top: 0;
             padding-bottom: 0;
@@ -112,20 +112,18 @@
 
         .card-content.expanded { /* Clase para expandir con JS */
             opacity: 1;
-            padding-top: 0.75rem; 
-            padding-bottom: 1.25rem;
         }
         
         .card-content-inner { 
-            padding-left: 1.25rem;
-            padding-right: 1.25rem;
+            padding: 0.75rem 1.25rem 1.25rem; /* top, horizontal, bottom */
         }
 
         .chevron-icon {
             transition: transform 0.3s ease-in-out;
             width: 1.25rem; 
             height: 1.25rem; 
-            color: #c4d600; 
+            /* --- CAMBIO DE COLOR --- */
+            color: #289989; 
         }
 
         .chevron-icon.expanded { /* Clase para rotar con JS */
@@ -134,7 +132,8 @@
 
         /* Colores de la paleta */
         .bg-primary-custom { background-color: #c4d600; } 
-        .text-primary-custom { color: #c4d600; } 
+        /* --- CAMBIO DE COLOR --- */
+        .text-primary-custom { color: #289989; } 
         
         .text-secondary-custom-dark { color: #A2B300; } 
         
@@ -189,7 +188,7 @@
             width: 1.65rem;  
             height: 1.65rem; 
             margin-right: 0.85rem; 
-            color: #c4d600; 
+            /* El color se hereda de .text-primary-custom */
         }
         .icon-container svg {
             width: 100%;
